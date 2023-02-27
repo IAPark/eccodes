@@ -58,6 +58,10 @@ pub struct KeyedMessage {
     nearest_handle: Option<*mut codes_nearest>,
 }
 
+unsafe impl Send for KeyedMessage {
+    // this is probably safe since KeyedMessage is always copied when it's created
+}
+
 ///Structure representing a single key from the `KeyedMessage`.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Key {
