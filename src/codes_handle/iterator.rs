@@ -1,4 +1,4 @@
-use std::os::fd::AsRawFd;
+use std::{os::fd::AsRawFd, slice};
 
 use eccodes_sys::codes_handle;
 use fallible_iterator::FallibleIterator;
@@ -8,7 +8,7 @@ use crate::{
     errors::CodesError,
     intermediate_bindings::{
         codes_get_message_copy, codes_handle_delete, codes_handle_new_from_file,
-        codes_handle_new_from_message_copy,
+        codes_handle_new_from_message_copy, codes_get_message,
     },
 };
 
@@ -109,14 +109,15 @@ impl<T: AsRawFd> FallibleIterator for CodesHandle<T> {
 
 fn get_message_from_handle(handle: *mut codes_handle) -> KeyedMessage {
     let new_handle;
-    let new_buffer;
-
     unsafe {
-        new_buffer = codes_get_message_copy(handle).expect(
+        let (ptr, length) = codes_get_message(handle).expect(
             "Getting message clone failed.
         Please report this panic on Github",
         );
-        new_handle = codes_handle_new_from_message_copy(&new_buffer);
+
+        let buffer = slice::from_raw_parts(ptr.cast::<u8>() , length);
+
+        new_handle = codes_handle_new_from_message_copy(buffer);
     }
 
     KeyedMessage {
