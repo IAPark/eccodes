@@ -33,7 +33,7 @@ use super::KeysIteratorFlags;
 ///let file_path = Path::new("./data/iceland.grib");
 ///let product_kind = ProductKind::GRIB;
 ///
-///let mut handle = CodesHandle::new_from_file(file_path, product_kind).unwrap();
+///let mut handle = CodesHandle::new_from_path(file_path, product_kind).unwrap();
 ///let mut current_message = handle.next().unwrap().unwrap();
 ///
 ///while let Some(key) = current_message.next().unwrap() {
@@ -95,7 +95,7 @@ impl KeyedMessage {
     ///let file_path = Path::new("./data/iceland.grib");
     ///let product_kind = ProductKind::GRIB;
     ///
-    ///let mut handle = CodesHandle::new_from_file(file_path, product_kind).unwrap();
+    ///let mut handle = CodesHandle::new_from_path(file_path, product_kind).unwrap();
     ///let mut current_message = handle.next().unwrap().unwrap();
     ///
     ///
@@ -165,7 +165,7 @@ mod tests {
         let file_path = Path::new("./data/iceland.grib");
         let product_kind = ProductKind::GRIB;
 
-        let mut handle = CodesHandle::new_from_file(file_path, product_kind).unwrap();
+        let mut handle = CodesHandle::new_from_path(file_path, product_kind).unwrap();
         let mut current_message = handle.next().unwrap().unwrap();
 
         assert!(current_message.iterator_flags.is_none());
@@ -200,7 +200,7 @@ mod tests {
         let file_path = Path::new("./data/iceland.grib");
         let product_kind = ProductKind::GRIB;
 
-        let mut handle = CodesHandle::new_from_file(file_path, product_kind).unwrap();
+        let mut handle = CodesHandle::new_from_path(file_path, product_kind).unwrap();
         let mut current_message = handle.next().unwrap().unwrap();
 
         let flags = vec![

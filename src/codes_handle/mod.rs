@@ -9,7 +9,7 @@ use libc::{c_char, c_void, size_t, FILE};
 use log::warn;
 use std::{
     fs::{File, OpenOptions},
-    os::unix::prelude::AsRawFd,
+    os::{unix::prelude::AsRawFd},
     path::Path,
     ptr::null_mut,
 };
@@ -28,9 +28,9 @@ mod keyed_message;
 ///It takes a full ownership of the accessed file.
 ///It can be constructed either using a file or a memory buffer.
 #[derive(Debug)]
-pub struct CodesHandle {
+pub struct CodesHandle<T: AsRawFd> {
     file_handle: *mut codes_handle,
-    _data: DataContainer,
+    _data: DataContainer<T>,
     file_pointer: *mut FILE,
     product_kind: ProductKind,
 }
@@ -110,9 +110,9 @@ pub enum KeysIteratorFlags {
 }
 
 #[derive(Debug)]
-enum DataContainer {
+enum DataContainer<T: AsRawFd> {
     FileBytes(Bytes),
-    FileBuffer(File),
+    FileBuffer(T),
 }
 
 ///Enum representing the kind of product (file type) inside handled file.
@@ -138,7 +138,7 @@ pub struct NearestGridpoint {
     pub value: f64, 
 }
 
-impl CodesHandle {
+impl CodesHandle<File> {
     ///The constructor that takes a [`path`](Path) to an existing file and
     ///a requested [`ProductKind`] and returns the [`CodesHandle`] object.
     ///
@@ -151,7 +151,7 @@ impl CodesHandle {
     ///let file_path = Path::new("./data/iceland.grib");
     ///let product_kind = ProductKind::GRIB;
     ///
-    ///let handle = CodesHandle::new_from_file(file_path, product_kind).unwrap();
+    ///let handle = CodesHandle::new_from_path(file_path, product_kind).unwrap();
     ///```
     ///
     ///The function opens the file as [`File`] and then utilises
@@ -176,19 +176,12 @@ impl CodesHandle {
     ///
     ///Returns [`CodesError::NoMessages`] when there is no message of requested type
     ///in the provided file.
-    pub fn new_from_file(file_path: &Path, product_kind: ProductKind) -> Result<Self, CodesError> {
+    pub fn new_from_path(file_path: &Path, product_kind: ProductKind) -> Result<Self, CodesError> {
         let file = OpenOptions::new().read(true).open(file_path)?;
-        let file_pointer = open_with_fdopen(&file)?;
 
-        let file_handle = null_mut();
-
-        Ok(CodesHandle {
-            _data: (DataContainer::FileBuffer(file)),
-            file_handle,
-            file_pointer,
-            product_kind,
-        })
+        Self::new_from_file(file, product_kind)
     }
+
 
     ///The constructor that takes data of file present in memory in [`Bytes`] format and
     ///a requested [`ProductKind`] and returns the [`CodesHandle`] object.
@@ -245,7 +238,22 @@ impl CodesHandle {
     }
 }
 
-fn open_with_fdopen(file: &File) -> Result<*mut FILE, CodesError> {
+impl<T: AsRawFd> CodesHandle<T> {
+    pub fn new_from_file(file: T, product_kind: ProductKind) -> Result<Self, CodesError> {
+        let file_pointer = open_with_fdopen(&file)?;
+
+        let file_handle = null_mut();
+
+        Ok(CodesHandle {
+            _data: (DataContainer::FileBuffer(file)),
+            file_handle,
+            file_pointer,
+            product_kind,
+        })
+    }
+}
+
+fn open_with_fdopen<T: AsRawFd>(file: &T) -> Result<*mut FILE, CodesError> {
     let file_ptr;
     unsafe {
         file_ptr = libc::fdopen(file.as_raw_fd(), "r".as_ptr().cast::<c_char>());
@@ -279,7 +287,7 @@ fn open_with_fmemopen(file_data: &Bytes) -> Result<*mut FILE, CodesError> {
     Ok(file_ptr)
 }
 
-impl Drop for CodesHandle {
+impl<T: AsRawFd> Drop for CodesHandle<T> {
     ///Executes the destructor for this type.
     ///This method calls `fclose()` from libc for graceful cleanup.
     ///
@@ -326,7 +334,7 @@ mod tests {
         let file_path = Path::new("./data/iceland.grib");
         let product_kind = ProductKind::GRIB;
 
-        let handle = CodesHandle::new_from_file(file_path, product_kind).unwrap();
+        let handle = CodesHandle::new_from_path(file_path, product_kind).unwrap();
 
         assert!(!handle.file_pointer.is_null());
         assert!(handle.file_handle.is_null());
@@ -370,7 +378,7 @@ mod tests {
         let file_path = Path::new("./data/iceland-surface.grib");
         let product_kind = ProductKind::GRIB;
 
-        let handle = CodesHandle::new_from_file(file_path, product_kind).unwrap();
+        let handle = CodesHandle::new_from_path(file_path, product_kind).unwrap();
         drop(handle);
 
         testing_logger::validate(|captured_logs| {

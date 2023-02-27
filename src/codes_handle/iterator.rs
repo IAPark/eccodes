@@ -1,3 +1,5 @@
+use std::os::fd::AsRawFd;
+
 use eccodes_sys::codes_handle;
 use fallible_iterator::FallibleIterator;
 
@@ -40,7 +42,7 @@ use crate::{
 ///let file_path = Path::new("./data/iceland-surface.grib");
 ///let product_kind = ProductKind::GRIB;
 ///
-///let mut handle = CodesHandle::new_from_file(file_path, product_kind).unwrap();
+///let mut handle = CodesHandle::new_from_path(file_path, product_kind).unwrap();
 ///
 ///// Print names of messages in the file
 ///while let Some(message) = handle.next().unwrap() {
@@ -66,7 +68,7 @@ use crate::{
 ///let file_path = Path::new("./data/iceland-surface.grib");
 ///let product_kind = ProductKind::GRIB;
 ///
-///let handle = CodesHandle::new_from_file(file_path, product_kind).unwrap();
+///let handle = CodesHandle::new_from_path(file_path, product_kind).unwrap();
 ///
 ///let handle_collected: Vec<KeyedMessage> = handle.collect().unwrap();
 ///```
@@ -77,7 +79,7 @@ use crate::{
 ///## Errors
 ///The `next()` method will return [`CodesInternal`](crate::errors::CodesInternal)
 ///when internal ecCodes function returns non-zero code.
-impl FallibleIterator for CodesHandle {
+impl<T: AsRawFd> FallibleIterator for CodesHandle<T> {
     type Item = KeyedMessage;
 
     type Error = CodesError;
@@ -138,7 +140,7 @@ mod tests {
         let file_path = Path::new("./data/iceland-surface.grib");
         let product_kind = ProductKind::GRIB;
 
-        let mut handle = CodesHandle::new_from_file(file_path, product_kind).unwrap();
+        let mut handle = CodesHandle::new_from_path(file_path, product_kind).unwrap();
 
         while let Some(msg) = handle.next().unwrap() {
             let key = msg.read_key("shortName").unwrap();
@@ -149,7 +151,7 @@ mod tests {
             }
         }
 
-        let handle = CodesHandle::new_from_file(file_path, product_kind).unwrap();
+        let handle = CodesHandle::new_from_path(file_path, product_kind).unwrap();
 
         let handle_collected: Vec<KeyedMessage> = handle.collect().unwrap();
 
@@ -167,7 +169,7 @@ mod tests {
         let file_path = Path::new("./data/iceland-surface.grib");
         let product_kind = ProductKind::GRIB;
 
-        let mut handle = CodesHandle::new_from_file(file_path, product_kind).unwrap();
+        let mut handle = CodesHandle::new_from_path(file_path, product_kind).unwrap();
         let current_message = handle.next().unwrap().unwrap();
 
         assert!(!current_message.message_handle.is_null());
@@ -182,7 +184,7 @@ mod tests {
         let file_path = Path::new("./data/iceland.grib");
         let product_kind = ProductKind::GRIB;
 
-        let handle = CodesHandle::new_from_file(file_path, product_kind).unwrap();
+        let handle = CodesHandle::new_from_path(file_path, product_kind).unwrap();
 
         // Use iterator to get a Keyed message with shortName "msl" and typeOfLevel "surface"
         // First, filter and collect the messages to get those that we want

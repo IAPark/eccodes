@@ -9,7 +9,7 @@ pub fn key_reading(c: &mut Criterion) {
     let file_path = Path::new("./data/iceland.grib");
     let product_kind = ProductKind::GRIB;
 
-    let mut handle = CodesHandle::new_from_file(file_path, product_kind).unwrap();
+    let mut handle = CodesHandle::new_from_path(file_path, product_kind).unwrap();
 
     let msg = handle.next().unwrap().unwrap();
 

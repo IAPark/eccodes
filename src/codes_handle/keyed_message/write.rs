@@ -30,7 +30,7 @@ impl KeyedMessage {
     ///let in_path = Path::new("./data/iceland-levels.grib");
     ///let out_path  = Path::new("./data/iceland-temperature-levels.grib");
     ///
-    ///let handle = CodesHandle::new_from_file(in_path, GRIB)?;
+    ///let handle = CodesHandle::new_from_path(in_path, GRIB)?;
     ///
     ///let mut t_levels =
     ///    handle.filter(|msg| Ok(msg.read_key("shortName")?.value == Str("t".to_string())));
@@ -91,7 +91,7 @@ impl KeyedMessage {
     ///#
     ///let file_path = Path::new("./data/iceland.grib");
     ///
-    ///let mut handle = CodesHandle::new_from_file(file_path, GRIB).unwrap();
+    ///let mut handle = CodesHandle::new_from_path(file_path, GRIB).unwrap();
     ///let mut current_message = handle.next().unwrap().unwrap();
     ///
     ///let new_key = Key {
@@ -149,7 +149,7 @@ mod tests {
         let file_path = Path::new("./data/iceland.grib");
         let product_kind = ProductKind::GRIB;
 
-        let mut handle = CodesHandle::new_from_file(file_path, product_kind).unwrap();
+        let mut handle = CodesHandle::new_from_path(file_path, product_kind).unwrap();
         let current_message = handle.next().unwrap().unwrap();
 
         drop(handle);
@@ -165,7 +165,7 @@ mod tests {
         let file_path = Path::new("./data/iceland.grib");
         let product_kind = ProductKind::GRIB;
 
-        let mut handle = CodesHandle::new_from_file(file_path, product_kind).unwrap();
+        let mut handle = CodesHandle::new_from_path(file_path, product_kind).unwrap();
         let current_message = handle.next().unwrap().unwrap().clone();
 
         drop(handle);
@@ -182,12 +182,12 @@ mod tests {
         let out_path = Path::new("./data/iceland_append.grib");
 
         let file_path = Path::new("./data/iceland-surface.grib");
-        let mut handle = CodesHandle::new_from_file(file_path, product_kind).unwrap();
+        let mut handle = CodesHandle::new_from_path(file_path, product_kind).unwrap();
         let current_message = handle.next().unwrap().unwrap();
         current_message.write_to_file(out_path, false).unwrap();
 
         let file_path = Path::new("./data/iceland-levels.grib");
-        let mut handle = CodesHandle::new_from_file(file_path, product_kind).unwrap();
+        let mut handle = CodesHandle::new_from_path(file_path, product_kind).unwrap();
         let current_message = handle.next().unwrap().unwrap();
         current_message.write_to_file(out_path, true).unwrap();
 
@@ -199,7 +199,7 @@ mod tests {
         let product_kind = ProductKind::GRIB;
         let file_path = Path::new("./data/iceland.grib");
 
-        let mut handle = CodesHandle::new_from_file(file_path, product_kind).unwrap();
+        let mut handle = CodesHandle::new_from_path(file_path, product_kind).unwrap();
         let mut current_message = handle.next().unwrap().unwrap();
 
         let old_key = current_message.read_key("centre").unwrap();
@@ -222,7 +222,7 @@ mod tests {
         let product_kind = ProductKind::GRIB;
         let file_path = Path::new("./data/iceland.grib");
 
-        let mut handle = CodesHandle::new_from_file(file_path, product_kind).unwrap();
+        let mut handle = CodesHandle::new_from_path(file_path, product_kind).unwrap();
         let mut current_message = handle.next().unwrap().unwrap();
 
         let old_key = current_message.read_key("centre").unwrap();
@@ -240,7 +240,7 @@ mod tests {
 
         let file_path = Path::new("./data/iceland_edit.grib");
 
-        let mut handle = CodesHandle::new_from_file(file_path, product_kind).unwrap();
+        let mut handle = CodesHandle::new_from_path(file_path, product_kind).unwrap();
         let current_message = handle.next().unwrap().unwrap();
 
         let read_key = current_message.read_key("centre").unwrap();

@@ -55,7 +55,7 @@ impl KeyedMessage {
     ///let file_path = Path::new("./data/iceland.grib");
     ///let product_kind = ProductKind::GRIB;
     ///
-    ///let mut handle = CodesHandle::new_from_file(file_path, product_kind).unwrap();
+    ///let mut handle = CodesHandle::new_from_path(file_path, product_kind).unwrap();
     ///let mut msg = handle.next().unwrap().unwrap();
     ///
     ///
@@ -172,7 +172,7 @@ mod tests {
         let file_path = Path::new("./data/iceland.grib");
         let product_kind = ProductKind::GRIB;
 
-        let mut handle = CodesHandle::new_from_file(file_path, product_kind).unwrap();
+        let mut handle = CodesHandle::new_from_path(file_path, product_kind).unwrap();
         let current_message = handle.next().unwrap().unwrap();
         let cloned_message = current_message.clone();
 
@@ -192,7 +192,7 @@ mod tests {
         let file_path = Path::new("./data/iceland.grib");
         let product_kind = ProductKind::GRIB;
 
-        let mut handle = CodesHandle::new_from_file(file_path, product_kind).unwrap();
+        let mut handle = CodesHandle::new_from_path(file_path, product_kind).unwrap();
         let mut current_message = handle.next().unwrap().unwrap();
 
         let _key = current_message.next().unwrap().unwrap();
@@ -210,10 +210,10 @@ mod tests {
         let file_path2 = Path::new("./data/iceland-surface.grib");
         let product_kind = ProductKind::GRIB;
 
-        let mut handle1 = CodesHandle::new_from_file(file_path1, product_kind).unwrap();
+        let mut handle1 = CodesHandle::new_from_path(file_path1, product_kind).unwrap();
         let mut msg1 = handle1.next().unwrap().unwrap();
 
-        let mut handle2 = CodesHandle::new_from_file(file_path2, product_kind).unwrap();
+        let mut handle2 = CodesHandle::new_from_path(file_path2, product_kind).unwrap();
         let mut msg2 = handle2.next().unwrap().unwrap();
 
         let out1 = msg1.find_nearest(64.13, -21.89).unwrap();

@@ -25,7 +25,7 @@ impl KeyedMessage {
     ///let file_path = Path::new("./data/iceland.grib");
     ///let product_kind = ProductKind::GRIB;
     ///
-    ///let mut handle = CodesHandle::new_from_file(file_path, product_kind).unwrap();
+    ///let mut handle = CodesHandle::new_from_path(file_path, product_kind).unwrap();
     ///let message = handle.next().unwrap().unwrap();
     ///let message_short_name = message.read_key("shortName").unwrap();
     ///
@@ -174,7 +174,7 @@ mod tests {
         let file_path = Path::new("./data/iceland.grib");
         let product_kind = ProductKind::GRIB;
 
-        let mut handle = CodesHandle::new_from_file(file_path, product_kind).unwrap();
+        let mut handle = CodesHandle::new_from_path(file_path, product_kind).unwrap();
 
         let current_message = handle.next().unwrap().unwrap();
 
@@ -224,7 +224,7 @@ mod tests {
         let file_path = Path::new("./data/iceland.grib");
         let product_kind = ProductKind::GRIB;
 
-        let mut handle = CodesHandle::new_from_file(file_path, product_kind).unwrap();
+        let mut handle = CodesHandle::new_from_path(file_path, product_kind).unwrap();
         let mut current_message = handle.next().unwrap().unwrap();
 
         for i in 0..=300 {
@@ -238,7 +238,7 @@ mod tests {
         let file_path = Path::new("./data/gfs.grib");
         let product_kind = ProductKind::GRIB;
 
-        let mut handle = CodesHandle::new_from_file(file_path, product_kind).unwrap();
+        let mut handle = CodesHandle::new_from_path(file_path, product_kind).unwrap();
         let mut current_message = handle.next().unwrap().unwrap();
 
         for i in 0..=300 {
@@ -252,7 +252,7 @@ mod tests {
         let file_path = Path::new("./data/iceland.grib");
         let product_kind = ProductKind::GRIB;
 
-        let mut handle = CodesHandle::new_from_file(file_path, product_kind).unwrap();
+        let mut handle = CodesHandle::new_from_path(file_path, product_kind).unwrap();
         let current_message = handle.next().unwrap().unwrap();
 
         let missing_key = current_message.read_key("doesNotExist");

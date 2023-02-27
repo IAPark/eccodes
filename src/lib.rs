@@ -25,7 +25,7 @@
 //!
 //!The [`CodesHandle`](codes_handle::CodesHandle) can be constructed in two ways:
 //!
-//!- The main option is to use [`new_from_file()`](codes_handle::CodesHandle::new_from_file) function
+//!- The main option is to use [`new_from_path()`](codes_handle::CodesHandle::new_from_path) function
 //!to open a file under provided [`path`](`std::path::Path`) with filesystem,
 //!when copying whole file into memory is not desired or not necessary.
 //!
@@ -59,7 +59,7 @@
 //!let file_path = Path::new("./data/iceland.grib");
 //!let product_kind = ProductKind::GRIB;
 //!
-//!let handle = CodesHandle::new_from_file(file_path, product_kind)?;
+//!let handle = CodesHandle::new_from_path(file_path, product_kind)?;
 //!
 //!// Use iterator to get a Keyed message with shortName "msl" and typeOfLevel "surface"
 //!// First, filter and collect the messages to get those that we want
@@ -112,7 +112,7 @@
 //!// We are computing the temperature at 850hPa as an average
 //!// of 900hPa and 800hPa and writing it to a new file.
 //!let file_path = Path::new("./data/iceland-levels.grib");
-//!let handle = CodesHandle::new_from_file(file_path, GRIB)?;
+//!let handle = CodesHandle::new_from_path(file_path, GRIB)?;
 //!
 //!// Get messages with temperature levels
 //!let t_levels: Vec<KeyedMessage> = handle

@@ -58,7 +58,7 @@ This crate provides an access to GRIB file by creating a
 
 The `CodesHandle` can be constructed in two ways:
 
-- The main option is to use `new_from_file()` function
+- The main option is to use `new_from_path()` function
 to open a file under provided `path` with filesystem,
 when copying whole file into memory is not desired or not necessary.
 
@@ -85,7 +85,7 @@ or as more specific data type.
 let file_path = Path::new("./data/iceland.grib");
 let product_kind = ProductKind::GRIB;
 
-let handle = CodesHandle::new_from_file(file_path, product_kind)?;
+let handle = CodesHandle::new_from_path(file_path, product_kind)?;
 
 // Use iterator to get a Keyed message with shortName "msl" and typeOfLevel "surface"
 // First, filter and collect the messages to get those that we want
