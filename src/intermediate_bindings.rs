@@ -136,7 +136,7 @@ pub unsafe fn codes_get_double_array(
     let mut key_size = codes_get_size(handle, key)?;
     let key = CString::new(key).unwrap();
 
-    let mut key_values: Vec<f64> = vec![0.0; key_size as usize];
+    let mut key_values: Vec<f64> = Vec::with_capacity(key_size);
 
     let error_code = eccodes_sys::codes_get_double_array(
         handle,
@@ -149,6 +149,8 @@ pub unsafe fn codes_get_double_array(
         let err: CodesInternal = FromPrimitive::from_i32(error_code).unwrap();
         return Err(err.into());
     }
+
+    key_values.set_len(key_size);
 
     Ok(key_values)
 }
