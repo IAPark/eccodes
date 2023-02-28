@@ -29,7 +29,6 @@ mod keyed_message;
 ///It can be constructed either using a file or a memory buffer.
 #[derive(Debug)]
 pub struct CodesHandle<T: AsRawFd> {
-    file_handle: *mut codes_handle,
     _data: DataContainer<T>,
     file_pointer: *mut FILE,
     product_kind: ProductKind,
@@ -59,7 +58,7 @@ pub struct KeyedMessage {
 }
 
 unsafe impl Send for KeyedMessage {
-    // this is probably safe since KeyedMessage is always copied when it's created
+    // this is probably safe
 }
 
 ///Structure representing a single key from the `KeyedMessage`.
@@ -227,11 +226,9 @@ impl CodesHandle<File> {
     ) -> Result<Self, CodesError> {
         let file_pointer = open_with_fmemopen(&file_data)?;
 
-        let file_handle = null_mut();
 
         Ok(CodesHandle {
             _data: (DataContainer::FileBytes(file_data)),
-            file_handle,
             file_pointer,
             product_kind,
         })
@@ -242,11 +239,9 @@ impl<T: AsRawFd> CodesHandle<T> {
     pub fn new_from_file(file: T, product_kind: ProductKind) -> Result<Self, CodesError> {
         let file_pointer = open_with_fdopen(&file)?;
 
-        let file_handle = null_mut();
 
         Ok(CodesHandle {
             _data: (DataContainer::FileBuffer(file)),
-            file_handle,
             file_pointer,
             product_kind,
         })
@@ -337,7 +332,6 @@ mod tests {
         let handle = CodesHandle::new_from_path(file_path, product_kind).unwrap();
 
         assert!(!handle.file_pointer.is_null());
-        assert!(handle.file_handle.is_null());
         assert_eq!(handle.product_kind as u32, ProductKind_PRODUCT_GRIB as u32);
 
         let metadata = match &handle._data {
@@ -362,7 +356,6 @@ mod tests {
 
         let handle = CodesHandle::new_from_memory(file_data, product_kind).unwrap();
         assert!(!handle.file_pointer.is_null());
-        assert!(handle.file_handle.is_null());
         assert_eq!(handle.product_kind as u32, ProductKind_PRODUCT_GRIB as u32);
 
         match &handle._data {

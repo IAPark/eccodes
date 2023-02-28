@@ -1,4 +1,4 @@
-use std::{os::fd::AsRawFd, slice};
+use std::{os::fd::AsRawFd};
 
 use eccodes_sys::codes_handle;
 use fallible_iterator::FallibleIterator;
@@ -7,8 +7,7 @@ use crate::{
     codes_handle::{CodesHandle, KeyedMessage},
     errors::CodesError,
     intermediate_bindings::{
-        codes_handle_delete, codes_handle_new_from_file,
-        codes_handle_new_from_message_copy, codes_get_message,
+        codes_handle_new_from_file,
     },
 };
 
@@ -87,15 +86,13 @@ impl<T: AsRawFd> FallibleIterator for CodesHandle<T> {
     fn next(&mut self) -> Result<Option<Self::Item>, Self::Error> {
         let file_handle;
         unsafe {
-            codes_handle_delete(self.file_handle)?;
             file_handle = codes_handle_new_from_file(self.file_pointer, self.product_kind);
         }
 
         match file_handle {
             Ok(h) => {
-                self.file_handle = h;
 
-                if self.file_handle.is_null() {
+                if h.is_null() {
                     Ok(None)
                 } else {
                     let message = get_message_from_handle(h);
@@ -108,20 +105,8 @@ impl<T: AsRawFd> FallibleIterator for CodesHandle<T> {
 }
 
 fn get_message_from_handle(handle: *mut codes_handle) -> KeyedMessage {
-    let new_handle;
-    unsafe {
-        let (ptr, length) = codes_get_message(handle).expect(
-            "Getting message clone failed.
-        Please report this panic on Github",
-        );
-
-        let buffer = slice::from_raw_parts(ptr.cast::<u8>() , length);
-
-        new_handle = codes_handle_new_from_message_copy(buffer);
-    }
-
     KeyedMessage {
-        message_handle: new_handle,
+        message_handle: handle,
         iterator_flags: None,
         iterator_namespace: None,
         keys_iterator: None,
