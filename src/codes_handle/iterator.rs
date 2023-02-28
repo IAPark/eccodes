@@ -7,7 +7,7 @@ use crate::{
     codes_handle::{CodesHandle, KeyedMessage},
     errors::CodesError,
     intermediate_bindings::{
-        codes_get_message_copy, codes_handle_delete, codes_handle_new_from_file,
+        codes_handle_delete, codes_handle_new_from_file,
         codes_handle_new_from_message_copy, codes_get_message,
     },
 };
