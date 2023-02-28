@@ -261,11 +261,9 @@ pub unsafe fn codes_get_message_size(handle: *mut codes_handle) -> Result<usize,
 pub unsafe fn codes_get_message(
     handle: *mut codes_handle,
 ) -> Result<(*const c_void, usize), CodesError> {
-    let buffer_size = codes_get_message_size(handle)?;
 
-    let buffer: Vec<u8> = vec![0; buffer_size as usize];
-    let mut buffer_ptr = buffer.as_ptr().cast::<libc::c_void>();
-
+    // allocate the pointer and size to get copied into
+    let mut buffer_ptr = std::ptr::null();
     let mut message_size: usize = 0;
 
     let error_code = eccodes_sys::codes_get_message(handle, &mut buffer_ptr, &mut message_size);
@@ -274,10 +272,6 @@ pub unsafe fn codes_get_message(
         let err: CodesInternal = FromPrimitive::from_i32(error_code).unwrap();
         return Err(err.into());
     }
-
-    assert!(buffer_size == message_size, 
-        "Buffer and message sizes ar not equal in codes_get_message! 
-        Please report this panic on Github.");
 
     Ok((buffer_ptr, message_size))
 }
