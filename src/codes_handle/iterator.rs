@@ -78,7 +78,7 @@ use crate::{
 ///## Errors
 ///The `next()` method will return [`CodesInternal`](crate::errors::CodesInternal)
 ///when internal ecCodes function returns non-zero code.
-impl<T: AsRawFd> FallibleIterator for CodesHandle<T> {
+impl<'map, T: AsRawFd> FallibleIterator for CodesHandle<'map, T> {
     type Item = KeyedMessage;
 
     type Error = CodesError;

@@ -1,17 +1,18 @@
 //!Main crate module containing definition of `CodesHandle`
 //!and all associated functions and data structures
 
-use crate::errors::CodesError;
+use crate::{errors::CodesError, intermediate_bindings};
 use bytes::Bytes;
 use eccodes_sys::{ProductKind_PRODUCT_GRIB, codes_handle, codes_keys_iterator, codes_nearest};
 use errno::errno;
 use libc::{c_char, c_void, size_t, FILE};
 use log::warn;
+use memmap2::Mmap;
 use std::{
     fs::{File, OpenOptions},
     os::{unix::prelude::AsRawFd},
     path::Path,
-    ptr::null_mut,
+    ptr::null_mut, marker::PhantomData, ops::Deref,
 };
 
 use eccodes_sys::{
@@ -28,8 +29,8 @@ mod keyed_message;
 ///It takes a full ownership of the accessed file.
 ///It can be constructed either using a file or a memory buffer.
 #[derive(Debug)]
-pub struct CodesHandle<T: AsRawFd> {
-    _data: DataContainer<T>,
+pub struct CodesHandle<'map, T: AsRawFd> {
+    _data: DataContainer<'map, T>,
     file_pointer: *mut FILE,
     product_kind: ProductKind,
 }
@@ -109,9 +110,10 @@ pub enum KeysIteratorFlags {
 }
 
 #[derive(Debug)]
-enum DataContainer<T: AsRawFd> {
+enum DataContainer<'map, T: AsRawFd> {
     FileBytes(Bytes),
     FileBuffer(T),
+    Mmap(&'map Mmap),
 }
 
 ///Enum representing the kind of product (file type) inside handled file.
@@ -137,7 +139,7 @@ pub struct NearestGridpoint {
     pub value: f64, 
 }
 
-impl CodesHandle<File> {
+impl CodesHandle<'static, File> {
     ///The constructor that takes a [`path`](Path) to an existing file and
     ///a requested [`ProductKind`] and returns the [`CodesHandle`] object.
     ///
@@ -235,7 +237,38 @@ impl CodesHandle<File> {
     }
 }
 
-impl<T: AsRawFd> CodesHandle<T> {
+impl<'map> CodesHandle<'map, File> {
+
+    ///The constructor that takes a [`Mmap`] object and a requested [`ProductKind`]
+    /// and returns the [`CodesHandle`] object.
+    pub fn new_from_mmap(file_data: &'map Mmap, product_kind: ProductKind) -> Result<Self, CodesError> {
+        let file_pointer = open_with_fmemopen(file_data)?;
+
+        Ok(CodesHandle {
+            _data: (DataContainer::Mmap(file_data)),
+            file_pointer,
+            product_kind,
+        })
+    }
+
+}
+
+impl<'map, T: AsRawFd> CodesHandle<'map, T> {
+    fn skip(&mut self) -> Result<(), CodesError> {
+        unsafe {
+            match intermediate_bindings::grib_new_from_file(self.file_pointer, true) {
+                Ok(handle)=> {
+                    intermediate_bindings::codes_handle_delete(handle)?;
+                    Ok(())
+                }
+                Err(error) => Err(error)
+            }
+        }
+    }
+}
+
+
+impl<T: AsRawFd> CodesHandle<'static, T> {
     pub fn new_from_file(file: T, product_kind: ProductKind) -> Result<Self, CodesError> {
         let file_pointer = open_with_fdopen(&file)?;
 
@@ -263,7 +296,7 @@ fn open_with_fdopen<T: AsRawFd>(file: &T) -> Result<*mut FILE, CodesError> {
     Ok(file_ptr)
 }
 
-fn open_with_fmemopen(file_data: &Bytes) -> Result<*mut FILE, CodesError> {
+fn open_with_fmemopen<T: Deref<Target = [u8]>> (file_data: &T) -> Result<*mut FILE, CodesError> {
     let file_ptr;
     unsafe {
         file_ptr = libc::fmemopen(
@@ -282,7 +315,7 @@ fn open_with_fmemopen(file_data: &Bytes) -> Result<*mut FILE, CodesError> {
     Ok(file_ptr)
 }
 
-impl<T: AsRawFd> Drop for CodesHandle<T> {
+impl<'map, T: AsRawFd> Drop for CodesHandle<'map, T> {
     ///Executes the destructor for this type.
     ///This method calls `fclose()` from libc for graceful cleanup.
     ///
@@ -337,6 +370,7 @@ mod tests {
         let metadata = match &handle._data {
             DataContainer::FileBytes(_) => panic!(),
             DataContainer::FileBuffer(file) => file.metadata().unwrap(),
+            DataContainer::Mmap(_) => panic!(),
         };
 
         println!("{:?}", metadata);
@@ -361,6 +395,7 @@ mod tests {
         match &handle._data {
             DataContainer::FileBytes(file) => assert!(!file.is_empty()),
             DataContainer::FileBuffer(_) => panic!(),
+            DataContainer::Mmap(_) => panic!(),
         };
     }
 

@@ -27,6 +27,7 @@ errno = "^0.2.8"
 num-derive = "^0.3.3"
 num-traits = "^0.2.14"
 fallible-iterator = "^0.2.0"
+memmap2 = "0.5.10"
 
 [dev-dependencies]
 eccodes-sys = "0.4.2"

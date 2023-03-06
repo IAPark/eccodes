@@ -59,6 +59,21 @@ pub unsafe fn codes_handle_new_from_file(
     Ok(file_handle)
 }
 
+pub unsafe fn grib_new_from_file(file_pointer: *mut FILE, headers_only: bool) -> Result<*mut codes_handle, CodesError>{
+    let context: *mut codes_context = ptr::null_mut(); //default context
+
+    let mut error_code: i32 = 0;
+
+    let file_handle = eccodes_sys::grib_new_from_file(context, file_pointer.cast::<__sFILE>(), headers_only as i32, &mut error_code);
+
+    if error_code != 0 {
+        let err: CodesInternal = FromPrimitive::from_i32(error_code).unwrap();
+        return Err(err.into());
+    }
+
+    Ok(file_handle)
+}
+
 pub unsafe fn codes_handle_delete(handle: *mut codes_handle) -> Result<(), CodesError> {
     let error_code = eccodes_sys::codes_handle_delete(handle);
 
