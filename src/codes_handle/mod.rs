@@ -254,7 +254,7 @@ impl<'map> CodesHandle<'map, File> {
 }
 
 impl<'map, T: AsRawFd> CodesHandle<'map, T> {
-    fn skip(&mut self) -> Result<(), CodesError> {
+    pub fn lazy_skip(&mut self) -> Result<(), CodesError> {
         unsafe {
             match intermediate_bindings::grib_new_from_file(self.file_pointer, true) {
                 Ok(handle)=> {
